@@ -11,3 +11,12 @@ syncPull() {
     git reset --hard "origin/$1"
     git pull origin "$1"
 }
+
+ghash(){
+    git rev-parse HEAD
+}
+
+syncHash(){
+    sync "$1"
+    ghash
+}
