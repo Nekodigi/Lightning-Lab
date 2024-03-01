@@ -35,5 +35,8 @@ def get_cfg(argv):
         return cast(BaseConfig, compose(config_name=ver))
 
 
-def syncHash(msg=""):
-    return subprocess.check_output(["syncHash", f"{msg}:wrench:"]).splitlines()[-1]
+def syncHash(msg="") -> str:
+    result = subprocess.run(["syncHash", f"{msg}:wrench:"], executable="/usr/bin/zsh")
+    # get last line of output
+    print(result)
+    return result.stdout.decode().split("\n")[-1]
