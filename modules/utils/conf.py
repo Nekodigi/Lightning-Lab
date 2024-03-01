@@ -35,5 +35,5 @@ def get_cfg(argv):
         return cast(BaseConfig, compose(config_name=ver))
 
 
-def syncHash():
-    subprocess.run(["syncHash", ":wrench:"])
+def syncHash(msg=""):
+    return subprocess.check_output(["syncHash", f"{msg}:wrench:"]).splitlines()[-1]
