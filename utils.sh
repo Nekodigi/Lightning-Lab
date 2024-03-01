@@ -8,6 +8,6 @@ sync() {
 
 syncPull() {
     #do things with parameters like $1 such as
-    git reset --hard origin/HEAD
-    git pull
+    git reset --hard "origin/$1"
+    git pull origin "$1"
 }
