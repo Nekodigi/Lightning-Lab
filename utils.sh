@@ -5,6 +5,7 @@ sync() {
     git push origin HEAD
 }
 
+
 syncPull() {
     #do things with parameters like $1 such as
     git reset --hard origin/HEAD
