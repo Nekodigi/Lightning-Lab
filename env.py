@@ -1,0 +1,9 @@
+BASE_PATH = "/app"
+
+DATASETS_PATH = f"{BASE_PATH}/.datasets"
+OUTPUTS_PATH = f"{BASE_PATH}/outputs"
+MODELS_PATH = f"{BASE_PATH}/models"
+LOGS_PATH = f"{BASE_PATH}/logs"
+INPUTS_PATH = f"{BASE_PATH}/inputs"
+REL_CONFS_PATH = "confs"
+CONFS_PATH = f"{BASE_PATH}/{REL_CONFS_PATH}"

@@ -1,0 +1,24 @@
+inputs/
+outputs/
+logs/
+.datasets/
+
+
+
+__pycache__/
+*.py[cod]
+*$py.class
+
+# dataset
+*-ubyte
+*.gz
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# mypy
+.mypy_cache/
