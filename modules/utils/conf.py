@@ -1,4 +1,5 @@
 import os
+import subprocess
 from dataclasses import dataclass
 from typing import cast
 
@@ -31,5 +32,8 @@ def get_cfg(argv):
     with initialize(
         version_base=None, config_path=f"../../{REL_CONFS_PATH}/{proj}/{act}"
     ):
-
         return cast(BaseConfig, compose(config_name=ver))
+
+
+def syncHash():
+    subprocess.run(["syncHash", ":wrench:"])
