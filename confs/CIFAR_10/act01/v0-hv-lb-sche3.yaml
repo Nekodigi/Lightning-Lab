@@ -1,0 +1,5 @@
+defaults:
+  - v0-hv-lb-sche
+trainer:
+  grad_acm: 1
+  weight_decay: 0.001

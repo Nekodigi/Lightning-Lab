@@ -1,0 +1,4 @@
+defaults:
+  - v1-mlp
+trainer:
+  lr: 0.001

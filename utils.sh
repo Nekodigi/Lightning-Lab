@@ -20,3 +20,5 @@ syncHash(){
     sync "$1"
     ghash
 }
+
+export PYTHONPATH="/app"

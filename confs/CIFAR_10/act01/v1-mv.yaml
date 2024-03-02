@@ -1,0 +1,7 @@
+defaults:
+  - default
+cnn:
+  dim: 32
+  dim_mults: [1, 2, 4, 8]
+  fc_dims: [10, 10]
+  full_attn: False

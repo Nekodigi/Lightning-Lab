@@ -1,0 +1,5 @@
+defaults:
+  - v0-hv-lb-sche2
+trainer:
+  grad_acm: 8
+  epochs: 1000

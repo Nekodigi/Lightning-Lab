@@ -1,0 +1,4 @@
+defaults:
+  - default
+cnn:
+  fc_dims: [10, 10]

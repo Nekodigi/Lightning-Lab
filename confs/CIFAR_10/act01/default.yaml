@@ -1,0 +1,19 @@
+info:
+  type: test
+  hash: 
+  note: 
+trainer:
+  dataset: cifar10
+  batch_size: 128
+  lr: 0.001
+  epochs: 100
+  val_every: 1
+  resume_from: 
+  dry: False
+  metrics1: val_acc
+  metrics2: test_acc
+cnn:
+  dim: 32
+  dim_mults: [1, 2, 4, 2]
+  fc_dims: [128]
+  full_attn: False

@@ -1,0 +1,6 @@
+defaults:
+  - default
+trainer:
+  dataset: cifar10
+  batch_size: 512
+  lr: 0.01

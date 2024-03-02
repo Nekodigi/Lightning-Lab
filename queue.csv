@@ -1,1 +1,4 @@
-CIFAR_10,00_basic,v0
+CIFAR_10,act01,v0-hv-lb-sche3-lwd4
+CIFAR_10,act01,v0-hv-lb-sche3-lwd2
+CIFAR_10,act01,v1-mlp
+CIFAR_10,act01,v0-hv-lb-pbn

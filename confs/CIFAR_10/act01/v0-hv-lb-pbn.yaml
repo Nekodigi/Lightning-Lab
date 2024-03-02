@@ -1,0 +1,4 @@
+defaults:
+  - v0-hv-lb
+cnn:
+  fc_dims: [10]

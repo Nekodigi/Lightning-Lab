@@ -1,0 +1,7 @@
+defaults:
+  - v0-hv-lb-sche
+trainer:
+  dataset: cifar10
+  batch_size: 512
+cnn:
+  fc_dims: [10]

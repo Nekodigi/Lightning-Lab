@@ -1,0 +1,12 @@
+defaults:
+  - default
+trainer:
+  dataset: cifar10
+  batch_size: 512
+  lr: 0.01
+  epochs: 100
+cnn:
+  dim: 32
+  dim_mults: [1, 2, 4, 2]
+  fc_dims: [128]
+  full_attn: False
