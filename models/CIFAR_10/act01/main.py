@@ -184,7 +184,7 @@ accumulator = GradientAccumulationScheduler(scheduling={0: 8, 4: 4, 8: 1})
 trainer = L.Trainer(
     max_epochs=cfg.trainer.epochs,
     accelerator="auto",
-    devices=1 if torch.cuda.is_available() else None,  # type: ignore
+    # devices=1 if torch.cuda.is_available() else None,  # type: ignore
     callbacks=[
         LearningRateMonitor(logging_interval="step"),  # type: ignore
         StochasticWeightAveraging(swa_lrs=1e-2),
