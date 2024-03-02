@@ -123,8 +123,11 @@ def get_tools():
 
 def get_hash(msg="") -> str:
     # run this command and get result as string  ["syncHash", f"{msg}:wrench:"]
-    result: bytes = subprocess.check_output(
-        ["git", "rev-parse", "--verify", "HEAD"],
-    )
-    # get last line of output
-    return result.decode().strip()
+    try:
+        result: bytes = subprocess.check_output(
+            ["git", "rev-parse", "--verify", "HEAD"],
+        )
+        # get last line of output
+        return result.decode().strip()
+    except subprocess.CalledProcessError:
+        return "None"
