@@ -67,7 +67,7 @@ class DataModule(L.LightningDataModule):
         self.cfg = cfg
 
     def prepare_data(self):
-        
+        pass
 
     def setup(self, stage=None):
         # self.train, self.val = random_split(
