@@ -67,12 +67,13 @@ class DataModule(L.LightningDataModule):
         self.cfg = cfg
 
     def prepare_data(self):
-        self.dataset = cast(DatasetDict, load_dataset("cifar10"))
+        
 
     def setup(self, stage=None):
         # self.train, self.val = random_split(
         #     MyDataset(self.dataset["train"]), [45000, 5000]
         # )
+        self.dataset = cast(DatasetDict, load_dataset("cifar10"))
         self.train = MyDataset(self.dataset["train"])
         self.val = MyDataset(self.dataset["test"], test=True)
         self.test = MyDataset(self.dataset["test"], test=True)
