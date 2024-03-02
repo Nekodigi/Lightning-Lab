@@ -12,6 +12,13 @@ syncPull() {
     git pull origin "$1"
 }
 
+syncPullRun() {
+    #do things with parameters like $1 such as
+    git reset --hard "origin/$1"
+    git pull origin "$1"
+    python /app/main.py
+}
+
 ghash(){
     git rev-parse HEAD
 }

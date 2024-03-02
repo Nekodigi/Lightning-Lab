@@ -1,5 +1,7 @@
 defaults:
   - v0-hv-lb-sche3-lwd4
+trainer:
+  batch_size: 256
 cnn:
   dim: 64
   dim_mults: [1, 2, 4, 2]

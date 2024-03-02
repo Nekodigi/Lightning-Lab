@@ -11,3 +11,7 @@ COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
 
 #RUN python -c "from opencv_fixer import AutoFix; AutoFix()"
+
+WORKDIR /root
+COPY utils.sh utils.sh
+RUN echo "source ~/utils.sh" >> ~/.zshrc
