@@ -14,6 +14,7 @@ syncPull() {
 
 syncPullRun() {
     #do things with parameters like $1 such as
+    git config --global --add safe.directory /app
     git reset --hard "origin/$1"
     git pull origin "$1"
     python /app/main.py
