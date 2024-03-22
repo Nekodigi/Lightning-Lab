@@ -11,7 +11,7 @@ trainer:
   resume_from: 
   grad_acm: 1
   swa: 0.01
-  weight_decay: 0.0001
+  weight_decay: 0.0005
   dry: False
   metrics1: val_acc
   metrics2: test_acc

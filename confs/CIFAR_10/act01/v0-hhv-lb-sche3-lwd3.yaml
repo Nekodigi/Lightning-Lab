@@ -1,0 +1,4 @@
+defaults:
+  - v0-hhv-lb-sche3-lwd4
+trainer: 
+  weight_decay: 0.001

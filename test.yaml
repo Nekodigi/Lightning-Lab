@@ -1,0 +1,22 @@
+cfg:
+  info:
+    type: test
+    hash: af44ce0b44c8685d5df7485f426468b30be01f1e
+    note: null
+  trainer:
+    dataset: cifar10
+    batch_size: 256
+    lr: 0.01
+    epochs: 100
+    val_every: 1
+    resume_from: null
+    dry: false
+    metrics1: val_acc
+    metrics2: test_acc
+    grad_acm: 1
+    weight_decay: 0.0005
+  cnn:
+    dim: 64
+    dim_mults: [1,2,4,2]
+    fc_dims: 128
+    full_attn: false

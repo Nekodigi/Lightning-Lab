@@ -1,0 +1,10 @@
+defaults:
+  - default
+  - a: v0
+  - b: v0
+
+d: ${b.ib}
+e: ${a:-${b}}
+# this will be used in hydra compose.
+# example with interpolation
+f: ${a}/${b}

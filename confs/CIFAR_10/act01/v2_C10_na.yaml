@@ -1,0 +1,5 @@
+defaults:
+  - v0-hhv-lb-sche3-lwd3
+
+trainer:
+  resume_from: latest

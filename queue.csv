@@ -1,5 +1,7 @@
-CIFAR_10,act01,v0-hhv-lb-sche3-lwd
+CIFAR_10,act01,v2_C10_na
+
 CIFAR_10,act01,v0-hhv-lb-sche3-lwd2
+CIFAR_10,act01,v0-hhv-lb-sche3-lwd
 CIFAR_10,act01,v0-hv-lb-sche3-lwd2
 CIFAR_10,act01,v1-mlp
 CIFAR_10,act01,v0-hv-lb-pbn

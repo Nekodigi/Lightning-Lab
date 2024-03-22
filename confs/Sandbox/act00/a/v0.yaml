@@ -1,0 +1,8 @@
+abbr: 
+  this_is_a_v0: a_v0
+  this_is_b_v0: b_v0
+
+ia: this_is_a_v0
+c: ${a.abbr[${b.ib}]}
+value: 0.0002
+format: ${"%.e" % value}

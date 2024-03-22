@@ -1,5 +1,1 @@
-CIFAR_10,act01_resnet_vit,v0-hhv-lb-sche3-lwd,2024-03-02 12:40:54,0:00:03,,None,ERROR
-CIFAR_10,act01_resnet_vit,v0-hhv-lb-sche3-lwd2,2024-03-02 12:40:58,0:00:03,,None,ERROR
-CIFAR_10,act01_resnet_vit,v0-hv-lb-sche3-lwd2,2024-03-02 12:41:02,0:00:03,,None,ERROR
-CIFAR_10,act01_resnet_vit,v1-mlp,2024-03-02 12:41:06,0:00:03,,None,ERROR
-CIFAR_10,act01_resnet_vit,v0-hv-lb-pbn,2024-03-02 12:41:10,0:00:03,,None,ERROR
+CIFAR_10,act01_resnet_vit,v2_C10_na,2024-03-22 11:36:04,0:00:36,,,└───────────────────────────┴───────────────────────────┘

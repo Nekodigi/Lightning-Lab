@@ -10,12 +10,12 @@ from lightning.pytorch.callbacks import (
     StochasticWeightAveraging,
 )
 from torch import Tensor, nn
-from torch.optim.lr_scheduler import OneCycleLR
+from torch.optim.lr_scheduler import CosineAnnealingLR, OneCycleLR
 from torchmetrics.functional import accuracy
 
 from confs.CIFAR_10.act01.conf import CIFAR10_01Config
 from confs.conf import get_tools
-from models.CIFAR_10.datamodule import DataModule
+from models.CIFAR_10.datamodule import DataModule, ImbCfDataModule
 from modules.utils.log import print_metrics
 from modules.utils.utils import default
 from modules.vision.resnet import Downsample, ResnetBlock
@@ -89,7 +89,7 @@ class Classifier(L.LightningModule):
         for block1, block2, attn, down in self.downs:  # type: ignore
             x = block1(x)
             x = block2(x)
-            x = attn(x) + x
+            # x = attn(x) + x
             x = down(x)
         x = self.mid_block1(x)
         x = self.mid_attn(x) + x
@@ -145,37 +145,27 @@ class Classifier(L.LightningModule):
         self.evaluate(batch, "test")
 
     def configure_optimizers(self):
-        # optimizer = torch.optim.SGD(
-        #     self.parameters(),
-        #     lr=self.lr,  # type: ignore
-        #     momentum=0.9,
-        #     weight_decay=5e-4,
-        # )
-        # steps_per_epoch = 50000 // self.cfg.trainer.batch_size  # 45000
-        # scheduler_dict = {
-        #     "scheduler": OneCycleLR(
-        #         optimizer,
-        #         0.1,
-        #         epochs=self.trainer.max_epochs,  # type: ignore
-        #         steps_per_epoch=steps_per_epoch,
-        #     ),
-        #     "interval": "step",
-        # }
-        # return {"optimizer": optimizer, "lr_scheduler": scheduler_dict}
-        # return torch.optim.Adam(self.parameters(), weight_decay=5e-4, lr=self.lr)  # type: ignore
-        return torch.optim.SGD(
+        optimizer = torch.optim.SGD(
             self.parameters(),
-            lr=self.lr,
+            lr=self.lr,  # type: ignore
             momentum=0.9,
-            weight_decay=self.cfg.trainer.weight_decay,  # 5e-4
+            weight_decay=self.cfg.trainer.weight_decay,
         )
+        scheduler_dict = {
+            "scheduler": CosineAnnealingLR(
+                optimizer,
+                T_max=self.trainer.max_epochs,  # type: ignore
+            ),
+            "interval": "step",
+        }
+        return {"optimizer": optimizer, "lr_scheduler": scheduler_dict}
 
 
 # init the autoencoder
 model = Classifier(cfg)
 
 
-datamodule = DataModule(cfg.trainer)
+datamodule = ImbCfDataModule(cfg.trainer)
 print(datamodule.cfg.batch_size)
 
 

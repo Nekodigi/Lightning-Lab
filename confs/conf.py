@@ -1,11 +1,13 @@
 import os
 import subprocess
 from dataclasses import dataclass
+from pathlib import Path
 from sys import argv
 from typing import cast
 
 from hydra import compose, initialize
 from lightning.pytorch.loggers import TensorBoardLogger
+from omegaconf import OmegaConf
 
 from env import LOGS_PATH
 from modules.utils.path import listdir_by_date
@@ -80,7 +82,7 @@ def get_latest_run() -> str | None:
     path = f"{LOGS_PATH}/{proj}/{act}/{ver}"
     if os.path.exists(path):
         dirs = listdir_by_date(path)
-        dirs = sorted(dirs, key=lambda x: int(x.split("_")[1]))
+        # dirs = sorted(dirs, key=lambda x: int(x.split("_")[1]))
         return dirs[-1]  # type: ignore
     else:
         return None
@@ -114,6 +116,9 @@ def get_tools():
     cfg = get_cfg()
     run = get_latest_run()
     logger = get_logger()
+    _, proj, act, ver = argv[-4:]
+    Path(f"{LOGS_PATH}/{proj}/{act}/{ver}").mkdir(parents=True, exist_ok=True)
+    OmegaConf.save(cfg, f"{LOGS_PATH}/{proj}/{act}/{ver}/cfg.yaml")
     resume_from = (
         run if cfg.trainer.resume_from == "latest" else cfg.trainer.resume_from
     )

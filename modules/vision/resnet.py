@@ -22,6 +22,7 @@ def Downsample(dim, dim_out=None, use_max_pool=True):
     return nn.Sequential(
         # Rearrange("b c (h p1) (w p2) -> b (c p1 p2) h w", p1=2, p2=2),
         # max pool 2d
+        nn.Dropout(0.25),
         (
             nn.MaxPool2d(2)
             if use_max_pool

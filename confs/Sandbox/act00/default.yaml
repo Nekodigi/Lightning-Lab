@@ -5,15 +5,10 @@ info:
 trainer:
   dataset: cifar10
   batch_size: 128
-  lr: 0.01
-  epochs: 100
+  lr: 0.001
+  epochs: 10
   val_every: 1
   resume_from: 
-  grad_acm: 1
-  swa: 0.01
-  weight_decay: 0.0001
   dry: False
   metrics1: val_acc
   metrics2: test_acc
-
-
