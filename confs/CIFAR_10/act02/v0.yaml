@@ -1,2 +1,6 @@
 defaults:
   - default
+
+trainer:
+  resume_from: latest
+  epochs: 20

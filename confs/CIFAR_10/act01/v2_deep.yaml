@@ -16,6 +16,6 @@ trainer:
   weight_decay: 0.001
 cnn:
   dim: 64
-  dim_mults: [1, 2, 4, 2]
-  fc_dims: [128]
+  dim_mults: [1, 2, 4, 8]
+  fc_dims: [1024, 128]
   full_attn: False

@@ -76,13 +76,21 @@ class Classifier(L.LightningModule):
         self.flatten = nn.Flatten()
         self.init_fc = nn.Linear(mid_dim * latent_size * latent_size, fc_dims[0])  # type: ignore
         self.act = nn.GELU()
+        self.do = nn.Dropout(0.5)
         self.fcs = nn.ModuleList([])
         for ind, (dim_in, dim_out) in enumerate(fc_in_out):
-            self.fcs.append(nn.ModuleList([nn.Linear(dim_in, dim_out), nn.GELU()]))
+            self.fcs.append(
+                nn.ModuleList(
+                    [
+                        nn.Linear(dim_in, dim_out),
+                        nn.GELU(),
+                        nn.Dropout(0.5),
+                    ]
+                )
+            )
         self.final_fc = nn.Linear(fc_dims[-1], 10)
 
         self.cfg = cfg
-        self.lr = cfg.trainer.lr
 
     def forward(self, x: Tensor) -> Tensor:
         x = self.init_conv(x)
@@ -97,9 +105,11 @@ class Classifier(L.LightningModule):
         x = self.flatten(x)
         x = self.init_fc(x)
         x = self.act(x)
-        for fc, act in self.fcs:  # type: ignore
+        x = self.do(x)
+        for fc, act, do in self.fcs:  # type: ignore
             x = fc(x)
             x = act(x)
+            x = do(x)
         x = self.final_fc(x)
         return F.log_softmax(x, dim=1)
 
@@ -145,27 +155,31 @@ class Classifier(L.LightningModule):
         self.evaluate(batch, "test")
 
     def configure_optimizers(self):
+        # optimizer = torch.optim.AdamW(
+        #     self.parameters(),
+        #     lr=self.cfg.trainer.lr,  # type: ignore
+        #     betas=(0.9, 0.98),
+        #     # momentum=0.9,
+        #     weight_decay=self.cfg.trainer.weight_decay,
+        # )
         optimizer = torch.optim.SGD(
             self.parameters(),
-            lr=self.lr,  # type: ignore
+            lr=self.cfg.trainer.lr,  # type: ignore
             momentum=0.9,
             weight_decay=self.cfg.trainer.weight_decay,
         )
-        scheduler_dict = {
-            "scheduler": CosineAnnealingLR(
-                optimizer,
-                T_max=self.trainer.max_epochs,  # type: ignore
-            ),
-            "interval": "step",
-        }
-        return {"optimizer": optimizer, "lr_scheduler": scheduler_dict}
+        scheduler_dict = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimizer,
+            T_max=self.cfg.trainer.epochs,  # type: ignore
+        )
+        return [optimizer], [scheduler_dict]
 
 
 # init the autoencoder
 model = Classifier(cfg)
 
 
-datamodule = ImbCfDataModule(cfg.trainer)
+datamodule = DataModule(cfg.trainer)
 print(datamodule.cfg.batch_size)
 
 

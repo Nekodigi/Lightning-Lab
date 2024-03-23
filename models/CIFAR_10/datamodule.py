@@ -15,7 +15,14 @@ from modules.datasets.dataloader import make_dataloader
 
 
 class MyDataset(TorchDataset):
-    def __init__(self, dataset: Dataset, test=False, use_embed=False, use_vit=True):
+    def __init__(
+        self,
+        dataset: Dataset,
+        test=False,
+        use_embed=False,
+        use_vit=True,
+        embed_type="clip",
+    ):
         self.dataset = dataset
         self.use_vit = use_vit
         if test:
@@ -40,6 +47,7 @@ class MyDataset(TorchDataset):
                 ]
             )
         self.use_embed = use_embed
+        self.embed_type = embed_type
 
     def __len__(self):
         return len(self.dataset)  # type: ignore
@@ -52,18 +60,31 @@ class MyDataset(TorchDataset):
             img = self.trans(item["img"])
         label = item["label"]
         if self.use_embed:
-            return img, label, torch.tensor(item["clip_embed"])
+            if self.embed_type == "vit":
+                return img, label, torch.tensor(item["emb768"][0])
+            elif self.embed_type == "clip":
+                return img, label, torch.tensor(item["embed"])
+            else:
+                assert False, f"embed_type {self.embed_type} not implemented"
         else:
             return img, label
 
 
 # download cifar10 from huggingface
 class DataModule(L.LightningDataModule):
-    def __init__(self, cfg: BaseTrainerCfg, use_embed=False, use_vit=False):
+    def __init__(
+        self,
+        cfg: BaseTrainerCfg,
+        use_embed=False,
+        use_vit=False,
+        embed_type="clip",
+        strict_test=False,
+    ):
         super().__init__()
         self.cfg = cfg
         self.use_embed = use_embed
         self.use_vit = use_vit
+        self.embed_type = embed_type
 
     def prepare_data(self):
         pass
@@ -73,13 +94,21 @@ class DataModule(L.LightningDataModule):
         #     MyDataset(self.dataset["train"]), [45000, 5000]
         # )
         if self.use_embed:
+            if self.embed_type == "clip":
+                embed_name = "embed"
+            elif self.embed_type == "vit":
+                embed_name = "vit_embed"
             self.dataset = cast(
-                DatasetDict, load_from_disk(f"{DATASETS_PATH}/cifar10/embed")
+                DatasetDict, load_from_disk(f"{DATASETS_PATH}/cifar10ib/{embed_name}")
             )
         else:
-            self.dataset = cast(DatasetDict, load_dataset("cifar10"))
+            # self.dataset = cast(DatasetDict, load_dataset("cifar10ib"))
+            self.dataset = cast(
+                DatasetDict, load_from_disk(f"{DATASETS_PATH}/cifar10ib/base")
+            )
         self.train_dataset = self.dataset["train"]
-        self.test_dataset = self.dataset["test"]
+
+        self.test_dataset = self.dataset["auth_test"]
         if self.use_vit:
             self.train_dataset = self.train_dataset.map(
                 image_processor,
@@ -95,13 +124,24 @@ class DataModule(L.LightningDataModule):
             )
         print(self.train_dataset)
         self.train = MyDataset(
-            self.train_dataset, use_embed=self.use_embed, use_vit=self.use_vit
+            self.train_dataset,
+            use_embed=self.use_embed,
+            use_vit=self.use_vit,
+            embed_type=self.embed_type,
         )
         self.val = MyDataset(
-            self.test_dataset, test=True, use_embed=self.use_embed, use_vit=self.use_vit
+            self.test_dataset,
+            test=True,
+            use_embed=self.use_embed,
+            use_vit=self.use_vit,
+            embed_type=self.embed_type,
         )
         self.test = MyDataset(
-            self.test_dataset, test=True, use_embed=self.use_embed, use_vit=self.use_vit
+            self.test_dataset,
+            test=True,
+            use_embed=self.use_embed,
+            use_vit=self.use_vit,
+            embed_type=self.embed_type,
         )
 
     def train_dataloader(self):

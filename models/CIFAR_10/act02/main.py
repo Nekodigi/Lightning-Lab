@@ -18,6 +18,8 @@ cfg, run, logger, ckpt = tools.cfg, tools.run, tools.logger, tools.ckpt  # type:
 cfg: CIFAR10_00Config = cast(CIFAR10_00Config, cfg)
 print(cfg)
 
+embed_type = "vit"
+
 
 class Classifier(L.LightningModule):
     def __init__(self, cfg: CIFAR10_00Config):
@@ -25,15 +27,21 @@ class Classifier(L.LightningModule):
         self.save_hyperparameters()
         # predict from embed
 
+        if embed_type == "vit":
+            init_dim = 768
+        elif embed_type == "clip":
+            init_dim = 512
+        elif embed_type == "api":
+            init_dim = 512
         # more layer high spec model
         self.model = nn.Sequential(
-            nn.Linear(512, 256),
-            nn.GELU(),
-            nn.Linear(256, 128),
-            nn.GELU(),
-            nn.Linear(128, 64),
-            nn.GELU(),
-            nn.Linear(64, 10),
+            nn.Linear(init_dim, 10),
+            # nn.GELU(),
+            # nn.Linear(256, 128),
+            # nn.GELU(),
+            # nn.Linear(128, 64),
+            # nn.GELU(),
+            # nn.Linear(64, 10),
         )
         self.cfg = cfg
         self.lr = cfg.trainer.lr
@@ -72,19 +80,24 @@ class Classifier(L.LightningModule):
         self.evaluate(batch, "test")
 
     def configure_optimizers(self):
-        return torch.optim.SGD(
+        optimizer = torch.optim.SGD(
             self.parameters(),
-            lr=self.lr,
+            lr=self.cfg.trainer.lr,  # type: ignore
             momentum=0.9,
-            weight_decay=self.cfg.trainer.weight_decay,  # 5e-4
+            weight_decay=self.cfg.trainer.weight_decay,
         )
+        scheduler_dict = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimizer,
+            T_max=self.cfg.trainer.epochs,  # type: ignore
+        )
+        return [optimizer], [scheduler_dict]
 
 
 # init the autoencoder
 model = Classifier(cfg)
 
 
-datamodule = DataModule(cfg.trainer, use_embed=True)
+datamodule = DataModule(cfg.trainer, use_embed=True, embed_type=embed_type)
 print(datamodule.cfg.batch_size)
 
 
