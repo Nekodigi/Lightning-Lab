@@ -1,9 +1,13 @@
 from typing import cast
 
 import lightning as L
+import numpy as np
+import seaborn as sns
 import torch
 import torch.nn.functional as F
 from lightning.pytorch.callbacks import LearningRateMonitor, StochasticWeightAveraging
+from matplotlib import pyplot as plt
+from sklearn.metrics import confusion_matrix
 from torch import Tensor, nn
 from torch.optim.lr_scheduler import OneCycleLR
 from torchmetrics.functional import accuracy
@@ -124,6 +128,57 @@ trainer = L.Trainer(
 
 trainer.fit(model, datamodule, ckpt_path=ckpt)  # type: ignore
 trainer.test(model, datamodule, ckpt_path=ckpt)  # type: ignore
+# datamodule.setup()
+# model = Classifier.load_from_checkpoint(ckpt)  # type: ignore
 
+
+def class_wise_acc(model, loader, device):
+    class_acc_list, y_preds, true_label = [], [], []
+    model = model.to(device)
+    model.eval()
+    with torch.no_grad():
+        for img, labels, inputs in loader:
+            inputs = inputs.to(device)
+            labels = labels.to(device)
+            logits = model(inputs)
+            preds = torch.argmax(logits, dim=1)
+            y_preds.extend(preds.cpu().numpy())
+            true_label.extend(labels.cpu().numpy())
+            print(preds[:4], labels[:4])
+        cf = confusion_matrix(true_label, y_preds).astype(float)
+        cls_cnt = cf.sum(axis=1)
+        cls_hit = np.diag(cf)
+        cls_acc = np.divide(
+            cls_hit, cls_cnt, out=np.zeros_like(cls_hit), where=cls_cnt != 0
+        )
+        # cls_acc = cls_hit / cls_cnt
+        class_acc_list.append(cls_acc)
+    model.train()
+    return (
+        class_acc_list[0],
+        y_preds,
+        true_label,
+        np.round(confusion_matrix(true_label, y_preds), 2),
+    )
+
+
+acc, pred, label, cm = class_wise_acc(model, datamodule.test_dataloader(), "cuda:0")
+# visualize cm
+plt.figure(figsize=(10, 10))
+
+sns.heatmap(
+    cm,
+    annot=True,
+    fmt=".2f",
+    cmap="Blues",
+    xticklabels=range(10),  # type: ignore
+    yticklabels=range(10),  # type: ignore
+)
+plt.xlabel("Predictions")
+plt.ylabel("True Labels")
+plt.title("Confusion Matrix")
+# save as img
+plt.savefig("ConfusionMatrix.png")
+plt.show()
 
 print_metrics(model, cfg)

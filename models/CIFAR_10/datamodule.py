@@ -107,8 +107,9 @@ class DataModule(L.LightningDataModule):
                 DatasetDict, load_from_disk(f"{DATASETS_PATH}/cifar10ib/base")
             )
         self.train_dataset = self.dataset["train"]
-
-        self.test_dataset = self.dataset["auth_test"]
+        print("auth_test")
+        print(self.dataset.keys())
+        self.test_dataset = self.dataset["test"]
         if self.use_vit:
             self.train_dataset = self.train_dataset.map(
                 image_processor,
