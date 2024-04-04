@@ -5,6 +5,7 @@ import numpy as np
 import seaborn as sns
 import torch
 import torch.nn.functional as F
+from datasets import Dataset, load_from_disk
 from lightning.pytorch.callbacks import LearningRateMonitor, StochasticWeightAveraging
 from matplotlib import pyplot as plt
 from sklearn.metrics import confusion_matrix
@@ -14,6 +15,7 @@ from torchmetrics.functional import accuracy
 
 from confs.CIFAR_10.act00.conf import CIFAR10_00Config
 from confs.conf import get_tools
+from env import DATASETS_PATH
 from models.CIFAR_10.datamodule import DataModule
 from modules.utils.log import print_metrics
 
@@ -23,6 +25,15 @@ cfg: CIFAR10_00Config = cast(CIFAR10_00Config, cfg)
 print(cfg)
 
 embed_type = "vit"
+
+datamodule = DataModule(cfg.trainer, use_embed=True, embed_type=embed_type)
+print(datamodule.cfg.batch_size)
+
+# Load the dataset
+ref_dataset = cast(
+    Dataset, load_from_disk(f"{DATASETS_PATH}/cifar10ib/vit_embed")["train"]
+).with_format("torch")
+ref_dataset.add_faiss_index("emb768")
 
 
 class Classifier(L.LightningModule):
@@ -60,7 +71,14 @@ class Classifier(L.LightningModule):
         logits = self(emb)
         loss = F.nll_loss(logits, y)
         preds = torch.argmax(logits, dim=1)
-        acc = accuracy(preds, y, "multiclass", num_classes=10)
+        scores, retrieved = datamodule.rag_dataset.get_nearest_examples_batch(
+            "emb768", emb.cpu().numpy(), 1
+        )
+        # print(retrieved[:4])
+        preds = torch.cat([torch.tensor(data["label"]) for data in retrieved])  # type: ignore
+        # print(preds[:4], y[:4], scores[:4])
+        # preds = torch.ones_like(y)
+        acc = accuracy(preds.cpu(), y.cpu(), "multiclass", num_classes=10)
 
         if stage:
             self.log(f"{stage}_loss", loss)
@@ -101,10 +119,6 @@ class Classifier(L.LightningModule):
 model = Classifier(cfg)
 
 
-datamodule = DataModule(cfg.trainer, use_embed=True, embed_type=embed_type)
-print(datamodule.cfg.batch_size)
-
-
 # model = Classifier(lr=0.05)
 
 trainer = L.Trainer(
@@ -119,7 +133,7 @@ trainer = L.Trainer(
     accumulate_grad_batches=cfg.trainer.grad_acm,
     check_val_every_n_epoch=cfg.trainer.val_every,
     logger=logger,
-    profiler="simple",
+    # profiler="simple",
 )
 
 
@@ -144,7 +158,7 @@ def class_wise_acc(model, loader, device):
             preds = torch.argmax(logits, dim=1)
             y_preds.extend(preds.cpu().numpy())
             true_label.extend(labels.cpu().numpy())
-            print(preds[:4], labels[:4])
+            # print(preds[:4], labels[:4])
         cf = confusion_matrix(true_label, y_preds).astype(float)
         cls_cnt = cf.sum(axis=1)
         cls_hit = np.diag(cf)

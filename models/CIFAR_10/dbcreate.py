@@ -22,6 +22,9 @@ if __name__ == "__main__":
         train=True,
         download=True,
     )
+    fsl5_dataset = IMBALANCECIFAR10(
+        root="./data", rand_number=0, train=True, download=True, fsl=5
+    )
     test_dataset = IMBALANCECIFAR10(
         root="./data",
         imb_type="exp",
@@ -38,29 +41,24 @@ if __name__ == "__main__":
         train=False,
         rand_number=0,
     )
-    train_images = [Image.fromarray(img) for img in train_dataset.data]
-    test_images = [Image.fromarray(img) for img in test_dataset.data]
-    auth_test_images = [Image.fromarray(img) for img in auth_test_dataset.data]
-    train_dataset = Dataset.from_dict(
-        {
-            "img": train_images,
-            "label": train_dataset.targets,
-        }
-    )
-    test_dataset = Dataset.from_dict(
-        {
-            "img": test_images,
-            "label": test_dataset.targets,
-        }
-    )
-    auth_test_dataset = Dataset.from_dict(
-        {
-            "img": auth_test_images,
-            "label": auth_test_dataset.targets,
-        }
-    )
+    datasets = [train_dataset, fsl5_dataset, test_dataset, auth_test_dataset]
+    new_datasets = []
+    for dataset in datasets:
+        images = [Image.fromarray(img) for img in dataset.data]
+        dataset = Dataset.from_dict(
+            {
+                "img": images,
+                "label": dataset.targets,
+            }
+        )
+        new_datasets.append(dataset)
     dataset_dict: DatasetDict = DatasetDict(
-        {"train": train_dataset, "test": test_dataset, "auth_test": auth_test_dataset}
+        {
+            "train": new_datasets[0],
+            "fsl5": new_datasets[1],
+            "test": new_datasets[2],
+            "auth_test": new_datasets[3],
+        }
     )
 
     print("DATASET LOADED")

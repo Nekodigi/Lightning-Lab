@@ -118,7 +118,8 @@ def get_tools():
     logger = get_logger()
     _, proj, act, ver = argv[-4:]
     Path(f"{LOGS_PATH}/{proj}/{act}/{ver}").mkdir(parents=True, exist_ok=True)
-    OmegaConf.save(cfg, f"{LOGS_PATH}/{proj}/{act}/{ver}/cfg.yaml")
+    # 
+    # OmegaConf.save(cfg, f"{LOGS_PATH}/{proj}/{act}/{ver}/cfg.yaml")
     resume_from = (
         run if cfg.trainer.resume_from == "latest" else cfg.trainer.resume_from
     )

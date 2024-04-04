@@ -54,7 +54,7 @@ def vit_embed(batch, rank, model, processor):
 
     def v_embed(x):
         inputs = processor(images=x, return_tensors="pt").to(device)
-        emb = model(**inputs).last_hidden_state[:, 0]
+        emb = model(**inputs).last_hidden_state[:, 0][0]
         return emb
 
     batch["emb768"] = [v_embed(x) for x in batch["img"]]
@@ -67,47 +67,47 @@ OPERATION = "vit_embed"
 
 def create_embed():
     with Progress() as prog:
-        if not os.path.exists(f"{DATASETS_PATH}/{DATASET_NAME}/{OPERATION}"):
-            print("!!Embedding has not been created!!")
-            task = prog.add_task("Applying Embedding", total=10)
-            # TODO LOAD FROM LOCAL AND USE!
-            datasetDict: DatasetDict = load_from_disk(f"{DATASETS_PATH}/{DATASET_NAME}/base")  # type: ignore  # , ignore_verifications=True, verification_mode="no_checks"
-            assert isinstance(
-                datasetDict, DatasetDict
-            ), "Expected to be DatasetDict"  # * Possibly accept dataset as well
-            prog.update(task, advance=2)  # 10% Dataset Loaded
-            print(datasetDict)
+        # if not os.path.exists(f"{DATASETS_PATH}/{DATASET_NAME}/{OPERATION}"):
+        print("!!Embedding has not been created!!")
+        task = prog.add_task("Applying Embedding", total=10)
+        # TODO LOAD FROM LOCAL AND USE!
+        datasetDict: DatasetDict = load_from_disk(f"{DATASETS_PATH}/{DATASET_NAME}/base")  # type: ignore  # , ignore_verifications=True, verification_mode="no_checks"
+        assert isinstance(
+            datasetDict, DatasetDict
+        ), "Expected to be DatasetDict"  # * Possibly accept dataset as well
+        prog.update(task, advance=2)  # 10% Dataset Loaded
+        print(datasetDict)
 
-            if OPERATION == "api_embed":
-                vertexai.init(project="sandbox-35d1d", location="us-central1")
-                model = MultiModalEmbeddingModel.from_pretrained("multimodalembedding")
-                gpu_comp = partial(api_embed, model=model)
-            elif OPERATION == "vit_embed":
-                processor = ViTFeatureExtractor.from_pretrained(
-                    "google/vit-base-patch16-224-in21k"
-                )
-                model = ViTModel.from_pretrained("google/vit-base-patch16-224-in21k")
-                gpu_comp = partial(vit_embed, model=model, processor=processor)
-            else:
-                model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
-                processor = AutoProcessor.from_pretrained(
-                    "openai/clip-vit-base-patch32"
-                )
-                gpu_comp = partial(clip_embed, model=model, processor=processor)
-            prog.update(task, advance=1)  # 30% Model Loaded
+        if OPERATION == "api_embed":
+            vertexai.init(project="sandbox-35d1d", location="us-central1")
+            model = MultiModalEmbeddingModel.from_pretrained("multimodalembedding")
+            gpu_comp = partial(api_embed, model=model)
+        elif OPERATION == "vit_embed":
+            processor = ViTFeatureExtractor.from_pretrained(
+                "google/vit-base-patch16-224-in21k"
+            )
+            model = ViTModel.from_pretrained("google/vit-base-patch16-224-in21k")
+            gpu_comp = partial(vit_embed, model=model, processor=processor)
+        else:
+            model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
+            processor = AutoProcessor.from_pretrained("openai/clip-vit-base-patch32")
+            gpu_comp = partial(clip_embed, model=model, processor=processor)
+        prog.update(task, advance=1)  # 30% Model Loaded
 
-            newDatasetDict = DatasetDict()
-            for key, dataset in datasetDict.items():
-                newDatasetDict[key] = dataset.map(
-                    gpu_comp,
-                    batched=True,
-                    batch_size=64,
-                    with_rank=True,
-                    num_proc=1,  # torch.cuda.device_count()
-                )
-            prog.update(task, advance=6)  # 80% Embedding Completed
-            newDatasetDict.save_to_disk(f"{DATASETS_PATH}/{DATASET_NAME}/{OPERATION}")
-            prog.update(task, advance=1)  # 90% Dataset Saved
+        newDatasetDict = DatasetDict()
+        for key, dataset in datasetDict.items():
+            newDatasetDict[key] = dataset.map(
+                gpu_comp,
+                batched=True,
+                batch_size=64,
+                with_rank=True,
+                num_proc=1,  # torch.cuda.device_count()
+            )
+        prog.update(task, advance=6)  # 80% Embedding Completed
+        newDatasetDict.save_to_disk(f"{DATASETS_PATH}/{DATASET_NAME}/{OPERATION}")
+        prog.update(task, advance=1)  # 90% Dataset Saved
+        # else:
+        #     print("Embedding has been created")
 
 
 if __name__ == "__main__":

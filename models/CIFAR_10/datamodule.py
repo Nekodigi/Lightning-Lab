@@ -61,7 +61,7 @@ class MyDataset(TorchDataset):
         label = item["label"]
         if self.use_embed:
             if self.embed_type == "vit":
-                return img, label, torch.tensor(item["emb768"][0])
+                return img, label, torch.tensor(item["emb768"])
             elif self.embed_type == "clip":
                 return img, label, torch.tensor(item["embed"])
             else:
@@ -96,8 +96,10 @@ class DataModule(L.LightningDataModule):
         if self.use_embed:
             if self.embed_type == "clip":
                 embed_name = "embed"
+                embed_key = "embed"
             elif self.embed_type == "vit":
                 embed_name = "vit_embed"
+                embed_key = "emb768"
             self.dataset = cast(
                 DatasetDict, load_from_disk(f"{DATASETS_PATH}/cifar10ib/{embed_name}")
             )
@@ -107,9 +109,12 @@ class DataModule(L.LightningDataModule):
                 DatasetDict, load_from_disk(f"{DATASETS_PATH}/cifar10ib/base")
             )
         self.train_dataset = self.dataset["train"]
+        self.rag_dataset = self.dataset["fsl5"]
+        self.rag_dataset.add_faiss_index(embed_key)
         print("auth_test")
         print(self.dataset.keys())
         self.test_dataset = self.dataset["test"]
+
         if self.use_vit:
             self.train_dataset = self.train_dataset.map(
                 image_processor,
@@ -174,17 +179,22 @@ class IMBALANCECIFAR10(torchvision.datasets.CIFAR10):
         transform=None,
         target_transform=None,
         download=False,
+        fsl=-1,
     ):
         super(IMBALANCECIFAR10, self).__init__(
             root, train, transform, target_transform, download
         )
         np.random.seed(rand_number)
-        img_num_list = self.get_img_num_per_cls(self.cls_num, imb_type, imb_factor)
+        img_num_list = self.get_img_num_per_cls(self.cls_num, imb_type, imb_factor, fsl)
         self.gen_imbalanced_data(img_num_list)
 
-    def get_img_num_per_cls(self, cls_num, imb_type, imb_factor):
+    def get_img_num_per_cls(self, cls_num, imb_type, imb_factor, fsl):
         img_max = len(self.data) / cls_num
         img_num_per_cls = []
+        if fsl > 0:
+            for cls_idx in range(cls_num):
+                img_num_per_cls.append(fsl)
+            return img_num_per_cls
         if imb_type == "exp":
             for cls_idx in range(cls_num):
                 num = img_max * (imb_factor ** (cls_idx / (cls_num - 1.0)))
